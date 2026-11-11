@@ -1,0 +1,25 @@
+name: Read-only mail tests
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: false
+      - run: gem install net-imap -v 0.6.8 --no-document
+      - run: gem install minitest -v 5.25.5 --no-document
+      - run: ruby -c read_mail.rb
+      - run: ruby read_mail.rb --check
+      - run: ruby test/read_mail_test.rb

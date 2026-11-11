@@ -2,4 +2,7 @@ exports/
 .env
 .env.*
 *.eml
+*.dpapi
+config.json
+config.*.json
 .DS_Store
