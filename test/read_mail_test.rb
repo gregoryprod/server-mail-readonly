@@ -250,12 +250,18 @@ class ReadMailTest < Minitest::Test
     path = ReadMail.windows_secret_path(@account)
     2.times { ReadMail.write_private(path, encrypted) }
     assert_equal password, ReadMail.saved_password(@account)
+    old_stdin = $stdin
+    $stdin = StringIO.new
+    $stdin.define_singleton_method(:tty?) { true }
+    replaced(ReadMail, :hidden_password, -> { password }) { ReadMail.save_password(@account) }
+    assert_equal password, ReadMail.saved_password(@account)
     second = @account.merge(host: 'second.example.test')
     refute_equal path, ReadMail.windows_secret_path(second)
     assert_nil ReadMail.saved_password(second)
     File.binwrite(path, 'corrupt-dpapi')
     assert_raises(ReadMail::Error) { ReadMail.saved_password(@account) }
   ensure
+    $stdin = old_stdin if old_stdin
     ENV['LOCALAPPDATA'] = previous if ReadMail.platform == :windows
   end
 end

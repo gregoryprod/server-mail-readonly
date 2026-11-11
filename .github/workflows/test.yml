@@ -23,3 +23,21 @@ jobs:
       - run: ruby -c read_mail.rb
       - run: ruby read_mail.rb --check
       - run: ruby test/read_mail_test.rb
+      - name: PowerShell 5.1 instructions and paths with spaces
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $Ruby = (& ruby -r rbconfig -e 'print RbConfig.ruby')
+          $Gem = (& $Ruby -r rbconfig -e 'print File.join(RbConfig::CONFIG.fetch(%q{bindir}), %q{gem})')
+          if (-not (Test-Path -LiteralPath $Gem)) { throw 'RubyGems path is invalid' }
+          $Dir = Join-Path $env:RUNNER_TEMP 'Mail Setup Space'
+          New-Item -ItemType Directory -Path $Dir -Force | Out-Null
+          Copy-Item -LiteralPath .\read_mail.rb -Destination $Dir
+          $Script = Join-Path $Dir 'read_mail.rb'
+          $Config = Join-Path $Dir 'test config.json'
+          & $Ruby $Script --config $Config --configure --host imap.example.test --user reader@example.test
+          if ($LASTEXITCODE -ne 0) { throw 'Configuration failed' }
+          $Result = & $Ruby $Script --config $Config --check
+          if ($LASTEXITCODE -ne 0) { throw 'Check failed' }
+          if (-not (($Result | ConvertFrom-Json).configured)) { throw 'Configuration was not loaded' }

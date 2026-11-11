@@ -35,7 +35,7 @@ Ruby ещё нет. Открой PowerShell заново после устано
 
 ```powershell
 $Ruby = (& ruby -r rbconfig -e 'print RbConfig.ruby')
-$Gem = (& $Ruby -r rbconfig -e 'print File.join(RbConfig::CONFIG.fetch("bindir"), "gem")')
+$Gem = (& $Ruby -r rbconfig -e 'print File.join(RbConfig::CONFIG.fetch(%q{bindir}), %q{gem})')
 & $Ruby $Gem install net-imap -v 0.6.8 --no-document
 & $Ruby .\read_mail.rb --check
 ```
